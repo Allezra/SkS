@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#070a12">
+    <meta name="description" content="MangaWeb — baca komik modern dengan tampilan bersih, cepat, dan nyaman.">
+    <title>MangaWeb — Baca Komik Modern</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif']
+                    },
+                    colors: {
+                        ink: { 950: '#070a12', 900: '#0b1120', 850: '#0e1524', 800: '#121a2b' }
+                    },
+                    boxShadow: {
+                        glow: '0 18px 45px -18px rgba(99, 102, 241, .6)',
+                        card: '0 30px 70px -35px rgba(0, 0, 0, .95)'
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp .5s cubic-bezier(.22,1,.36,1) both',
+                        float: 'float 7s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        fadeUp: { from: { opacity: 0, transform: 'translateY(16px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+                        float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-7px)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root { color-scheme: dark; }
+        html { background-color: #070a12; }
+        body {
+            background-color: transparent;
+            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+            color: #e2e8f0;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            overflow-x: hidden;
+        }
+        /* Latar aurora halus */
+        .bg-aurora {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(60rem 40rem at 10% -12%, rgba(79, 70, 229, .20), transparent 60%),
+                radial-gradient(52rem 36rem at 92% -4%, rgba(139, 92, 246, .13), transparent 60%),
+                radial-gradient(46rem 32rem at 50% 115%, rgba(14, 165, 233, .08), transparent 62%),
+                #070a12;
+        }
+        .glass {
+            background: rgba(8, 12, 22, .74);
+            backdrop-filter: blur(18px) saturate(150%);
+            -webkit-backdrop-filter: blur(18px) saturate(150%);
+        }
+        .glass-float {
+            background: rgba(15, 21, 36, .9);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+        /* Navigasi */
+        .nav-pill {
+            color: #94a3b8;
+            border-radius: .65rem;
+            padding: .5rem .85rem;
+            font-size: .875rem;
+            font-weight: 500;
+            transition: color .2s, background-color .2s, box-shadow .2s;
+        }
+        .nav-pill:hover { color: #fff; background: rgba(255, 255, 255, .05); }
+        .nav-pill.is-active {
+            color: #c7d2fe;
+            background: rgba(99, 102, 241, .16);
+            box-shadow: inset 0 0 0 1px rgba(129, 140, 248, .18);
+        }
+        .mnav {
+            color: #64748b;
+            transition: color .2s, background-color .2s;
+        }
+        .mnav.is-active { color: #c7d2fe; background: rgba(99, 102, 241, .16); }
+        /* Scrollbar */
+        .scroll-slim { scrollbar-width: thin; scrollbar-color: #2b3852 transparent; }
+        .scroll-slim::-webkit-scrollbar { width: 8px; height: 8px; }
+        .scroll-slim::-webkit-scrollbar-track { background: transparent; }
+        .scroll-slim::-webkit-scrollbar-thumb { background: #26334c; border-radius: 99px; }
+        .scroll-slim::-webkit-scrollbar-thumb:hover { background: #34445f; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070a12; }
+        ::-webkit-scrollbar-thumb { background: #253149; border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: #33425c; }
+        /* Skeleton */
+        .skeleton {
+            background-image: linear-gradient(90deg, rgba(255,255,255,.035) 25%, rgba(255,255,255,.085) 37%, rgba(255,255,255,.035) 63%);
+            background-size: 400% 100%;
+            animation: shimmer 1.6s ease-in-out infinite;
+            background-color: rgba(255, 255, 255, .02);
+        }
+        @keyframes shimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+        /* Reader */
+        body.reader-open { background-color: #000; }
+        #reader-pages img { -webkit-user-drag: none; user-select: none; }
+        #reader-pages { overflow-anchor: none; }
+        ::selection { background: rgba(99, 102, 241, .35); color: #fff; }
+        *:focus-visible { outline: 2px solid rgba(129, 140, 248, .75); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen flex-col selection:bg-indigo-500/30">
+    <div class="bg-aurora"></div>
+
+    <!-- ================= NAVBAR ================= -->
+    <header id="app-header" class="glass fixed inset-x-0 top-0 z-50 border-b border-white/[0.06]">
+        <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-5 sm:px-6 lg:px-8">
+            <!-- Logo -->
+            <button id="brand" class="flex shrink-0 items-center gap-2.5" aria-label="Ke beranda">
+                <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-glow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                </span>
+                <span class="hidden font-display text-lg font-extrabold tracking-tight text-white sm:block">Manga<span class="text-indigo-400">Web</span></span>
+            </button>
+
+            <!-- Navigasi desktop -->
+            <nav class="hidden items-center gap-0.5 md:flex" aria-label="Navigasi utama">
+                <button class="nav-pill" data-nav="beranda">Beranda</button>
+                <button class="nav-pill" data-nav="riwayat">Riwayat</button>
+                <button class="nav-pill" data-nav="tersimpan">Tersimpan</button>
+            </nav>
+
+            <!-- Pencarian -->
+            <form id="searchForm" class="ml-auto min-w-0 flex-1 sm:max-w-md md:mx-auto">
+                <div class="group relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-slate-500 transition-colors group-focus-within:text-indigo-400">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                    </span>
+                    <input id="searchInput" type="text" autocomplete="off" placeholder="Cari komik…" aria-label="Cari komik"
+                        class="h-10 w-full rounded-full border border-white/10 bg-white/[0.04] pl-10 pr-12 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-indigo-400/60 focus:bg-white/[0.07] focus:ring-2 focus:ring-indigo-500/20">
+                    <kbd class="pointer-events-none absolute inset-y-0 right-3 my-auto hidden h-5 items-center rounded-md border border-white/10 bg-white/5 px-1.5 text-[10px] font-medium text-slate-500 sm:flex">/</kbd>
+                </div>
+            </form>
+
+            <!-- Akun (Desktop) -->
+            <div class="hidden shrink-0 items-center gap-2 sm:flex">
+                <button data-nav="profil" class="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-gradient-to-br from-slate-700 to-slate-800 text-slate-300 transition hover:border-indigo-400/40 hover:text-white" aria-label="Akun">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="h-[18px] w-[18px]"><path fill-rule="evenodd" d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-8 9a8 8 0 1 1 16 0H4Z" clip-rule="evenodd"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= NAVIGASI MOBILE ================= -->
+    <nav id="mobile-nav" class="fixed inset-x-3 bottom-3 z-40 md:hidden" aria-label="Navigasi mobile">
+        <div class="glass-float flex items-center justify-around rounded-2xl p-1.5 shadow-2xl">
+            <button class="mnav flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-semibold" data-nav="beranda">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2v-9Z"/></svg>
+                <span>Beranda</span>
+            </button>
+            <button class="mnav flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-semibold" data-nav="riwayat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                <span>Riwayat</span>
+            </button>
+            <button class="mnav flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-semibold" data-nav="tersimpan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-4-6 4V4Z"/></svg>
+                <span>Tersimpan</span>
+            </button>
+            <!-- Nav Profil untuk Mobile -->
+            <button class="mnav flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-semibold" data-nav="profil">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Profil</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ================= KONTEN ================= -->
+    <main id="app" class="mx-auto w-full max-w-7xl flex-1 px-4 pb-28 pt-24 transition-opacity duration-200 sm:px-6 md:pb-16 lg:px-8"></main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer id="app-footer" class="mt-8 border-t border-white/[0.06] bg-black/20">
+        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 pb-24 text-xs text-slate-500 sm:flex-row sm:px-6 md:pb-6 lg:px-8">
+            <p>&copy; 2026 <span class="font-semibold text-slate-400">MangaWeb</span>. Dibuat dengan Tailwind &amp; Vanilla JS.</p>
+            <p class="text-slate-600">Semua konten milik pemiliknya masing-masing.</p>
+        </div>
+    </footer>
+
+    <!-- ================= TOAST ================= -->
+    <div id="toast" role="status" aria-live="polite" class="pointer-events-none fixed bottom-24 left-1/2 z-[60] w-max max-w-[92vw] -translate-x-1/2 translate-y-3 opacity-0 transition-all duration-300 md:bottom-8"></div>
+
+    <!-- ================= READER ================= -->
+    <div id="reader-ui" class="hidden">
+        <!-- Top bar -->
+        <div id="reader-top" class="glass fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] transition-all duration-300">
+            <div class="flex h-16 items-center gap-2.5 px-3 sm:gap-3 sm:px-5">
+                <button id="readerBack" class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white" aria-label="Kembali ke detail">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <div class="min-w-0 flex-1">
+                    <h2 id="reader-manga-title" class="truncate font-display text-sm font-bold text-white sm:text-base">Judul Manga</h2>
+                    <p id="reader-chapter-title" class="truncate text-xs font-medium text-indigo-400">Chapter —</p>
+                </div>
+                <span id="reader-percent" class="hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-slate-400 sm:inline">0%</span>
+                <button id="readerList" class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white" aria-label="Daftar chapter">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                </button>
+            </div>
+            <div class="h-0.5 w-full bg-white/[0.06]">
+                <div id="reader-progress" class="h-full w-0 bg-gradient-to-r from-indigo-500 to-violet-400 transition-[width] duration-150"></div>
+            </div>
+        </div>
+
+        <!-- Halaman komik -->
+        <div id="reader-pages" class="min-h-screen w-full bg-black pb-28 pt-16"></div>
+
+        <!-- Navigasi chapter -->
+        <div id="reader-bottom" class="pointer-events-none fixed inset-x-0 bottom-5 z-50 flex justify-center px-4 transition-all duration-300">
+            <div class="glass-float pointer-events-auto flex items-center gap-1 rounded-full p-1.5 shadow-2xl">
+                <button id="btn-prev-chap" class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m15 18-6-6 6-6"/></svg>
+                    Sebelumnya
+                </button>
+                <div class="mx-1 h-6 w-px bg-white/10"></div>
+                <button id="btn-next-chap" class="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white">
+                    Selanjutnya
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =====================================================================
+           KONFIGURASI
+        ===================================================================== */
+        const BASE_URL = window.MANGAWEB_API_URL || 'http://localhost:3000';
+
+        // Fungsi pembantu untuk mengambil prefix nama user agar data tidak tabrakan
+        function getUserPrefix() {
+            const user = localStorage.getItem('mw_current_user');
+            return user ? 'u_' + user + '_' : 'default_';
+        }
+
+        /* Placeholder SVG lokal (tidak butuh koneksi) */
+        const PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600">' +
+            '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#161f33"/><stop offset="1" stop-color="#0a0f1c"/></linearGradient></defs>' +
+            '<rect width="400" height="600" fill="url(#g)"/>' +
+            '<circle cx="200" cy="205" r="34" fill="none" stroke="#33415c" stroke-width="9"/>' +
+            '<path d="M146 290h108M146 326h76M146 362h42" stroke="#33415c" stroke-width="9" stroke-linecap="round"/>' +
+            '<text x="200" y="430" fill="#42506b" font-family="Arial, sans-serif" font-size="18" text-anchor="middle">No cover</text>' +
+            '</svg>'
+        );
+
+        /* =====================================================================
+           IKON
+        ===================================================================== */
+        const ICONS = {
+            search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>',
+            bookmark: (filled) => '<svg viewBox="0 0 24 24" fill="' + (filled ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-4-6 4V4Z"/></svg>',
+            play: '<svg viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l11.14-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14Z"/></svg>',
+            arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+            arrowLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>',
+            check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m5 13 4 4L19 7"/></svg>',
+            flame: '<svg viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5"><path d="M12 2s5 4.13 5 8.5a5 5 0 0 1-10 0C7 8.6 9 6.5 9 6.5S9.5 9 11 9.5c0-2.5 1-5.5 1-7.5Z"/><path d="M12 22a7 7 0 0 0 7-7c0-1.2-.3-2.2-.8-3.1.2 1.1-.2 2.3-1.2 2.9.1-.8-.1-1.7-.5-2.4A7 7 0 0 0 5 15a7 7 0 0 0 7 7Z" opacity=".55"/></svg>',
+            alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>',
+            refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>',
+            clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+            book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="h-12 w-12"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+            user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>',
+            grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="h-5 w-5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+            loadMore: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m7 15 5 5 5-5"/><path d="m7 9 5 5 5-5"/></svg>'
+        };
+
+        /* =====================================================================
+           STATE
+        ===================================================================== */
+        const state = {
+            view: 'beranda',
+            home: [],
+            searchResults: [],
+            page: 1,
+            hasNextPage: false,
+            searchQuery: '',
+            featuredIndex: 0,
+            currentManga: null,
+            detailData: null,
+            chapterList: [],
+            chapterQuery: '',
+            sortDesc: true,
+            readerVisible: true,
+            readerPrev: null,
+            readerNext: null,
+            currentChapter: null,
+            mangaMap: new Map(),
+            mangaKeys: new WeakMap(),
+            chapterMap: new Map(),
+            chapterKeys: new WeakMap(),
+            seq: 0
+        };
+
+        /* =====================================================================
+           HELPER UMUM
+        ===================================================================== */
+        const appEl = document.getElementById('app');
+        const appHeader = document.getElementById('app-header');
+        const mobileNav = document.getElementById('mobile-nav');
+        const appFooter = document.getElementById('app-footer');
+        const readerUI = document.getElementById('reader-ui');
+
+        function esc(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function proxy(url) {
+            return url ? BASE_URL + '/api/manga/image?url=' + encodeURIComponent(url) : PLACEHOLDER;
+        }
+
+        window.imgFallback = function (img) {
+            img.onerror = null;
+            img.src = PLACEHOLDER;
+            img.classList.add('opacity-70');
+        };
+
+        function chapterName(chapter) {
+            return (chapter && (chapter.name || chapter.title)) || 'Chapter';
+        }
+
+        function toMangaList(json) {
+            const d = json && json.data;
+            if (Array.isArray(d)) return d;
+            if (d && Array.isArray(d.mangas)) return d.mangas;
+            if (json && Array.isArray(json.mangas)) return json.mangas;
+            return [];
+        }
+
+        function toChapterList(json) {
+            const d = json && json.data;
+            if (Array.isArray(d)) return d;
+            if (d && Array.isArray(d.chapters)) return d.chapters;
+            return [];
+        }
+
+        function toPageList(json) {
+            const d = json && json.data;
+            if (Array.isArray(d)) return d;
+            if (d && Array.isArray(d.pages)) return d.pages;
+            return [];
+        }
+
+        function normalizeRating(value) {
+            let r = parseFloat(value) || 0;
+            if (r > 5) r = r / 2;
+            return Math.max(0, Math.min(5, r));
+        }
+
+        function starsHTML(value) {
+            const rating = normalizeRating(value);
+            const rounded = Math.round(rating);
+            let out = '<span class="inline-flex items-center gap-0.5">';
+            for (let i = 1; i <= 5; i++) {
+                out += '<svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5 ' + (i <= rounded ? 'text-amber-400' : 'text-slate-700') + '"><path d="M9.05 2.93c.3-.92 1.6-.92 1.9 0l1.07 3.29a1 1 0 0 0 .95.69h3.46c.97 0 1.37 1.24.59 1.81l-2.8 2.03a1 1 0 0 0-.36 1.12l1.07 3.29c.3.92-.76 1.69-1.54 1.12l-2.8-2.03a1 1 0 0 0-1.18 0l-2.8 2.03c-.78.57-1.83-.2-1.54-1.12l1.07-3.29a1 1 0 0 0-.36-1.12L2.97 8.72c-.78-.57-.38-1.81.59-1.81H7.02a1 1 0 0 0 .95-.69l1.08-3.29Z"/></svg>';
+            }
+            return out + '</span>';
+        }
+
+        function timeAgo(timestamp) {
+            if (!timestamp) return '';
+            const diff = Math.max(0, Date.now() - timestamp);
+            const min = Math.floor(diff / 60000);
+            if (min < 1) return 'baru saja';
+            if (min < 60) return min + ' menit lalu';
+            const hours = Math.floor(min / 60);
+            if (hours < 24) return hours + ' jam lalu';
+            const days = Math.floor(hours / 24);
+            if (days < 30) return days + ' hari lalu';
+            return new Date(timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        let toastTimer = null;
+        function toast(message, type) {
+            const el = document.getElementById('toast');
+            const tone = {
+                success: 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100',
+                error: 'border-rose-400/30 bg-rose-500/10 text-rose-100',
+                info: 'border-indigo-400/30 bg-indigo-500/20 text-indigo-50'
+            }[type || 'info'];
+            el.innerHTML = '<div class="flex items-center gap-2 rounded-2xl border ' + tone + ' px-4 py-2.5 text-sm font-medium shadow-2xl backdrop-blur-md">' + message + '</div>';
+            el.classList.remove('opacity-0', 'translate-y-3');
+            el.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () {
+                el.classList.add('opacity-0', 'translate-y-3');
+                el.classList.remove('opacity-100', 'translate-y-0');
+            }, 2600);
+        }
+
+        async function fetchAPI(endpoint) {
+            const res = await fetch(BASE_URL + endpoint, { headers: { Accept: 'application/json' } });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return await res.json();
+        }
+
+        /* =====================================================================
+           PENYIMPANAN LOKAL
+        ===================================================================== */
+        function readJSON(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (err) {
+                return fallback;
+            }
+        }
+
+        function getBookmarks() { return readJSON(getUserPrefix() + 'bookmarks', []); }
+        function isBookmarked(id) { return getBookmarks().some(function (m) { return m.url === id; }); }
+
+        function toggleBookmark(manga) {
+            const list = getBookmarks();
+            const idx = list.findIndex(function (m) { return m.url === manga.url; });
+            const key = getUserPrefix() + 'bookmarks';
+            if (idx !== -1) {
+                list.splice(idx, 1);
+                localStorage.setItem(key, JSON.stringify(list));
+                return false;
+            }
+            list.unshift({ url: manga.url, title: manga.title, thumbnail: manga.thumbnail });
+            localStorage.setItem(key, JSON.stringify(list));
+            return true;
+        }
+
+        function getHistory() { return readJSON(getUserPrefix() + 'history', []); }
+
+        function saveHistory(manga, chapter) {
+            let list = getHistory();
+            const idx = list.findIndex(function (m) { return m.url === manga.url; });
+            const item = idx !== -1 ? list.splice(idx, 1)[0] : { url: manga.url };
+            item.title = manga.title;
+            item.thumbnail = manga.thumbnail || item.thumbnail;
+            item.lastRead = chapterName(chapter);
+            item.lastReadUrl = chapter && chapter.url;
+            item.timestamp = Date.now();
+            list.unshift(item);
+            list = list.slice(0, 60);
+            localStorage.setItem(getUserPrefix() + 'history', JSON.stringify(list));
+        }
+
+        function getReadChapters(mangaId) { return readJSON(getUserPrefix() + 'read_' + mangaId, []); }
+
+        function markChapterRead(mangaId, chapterId) {
+            if (!chapterId) return;
+            const reads = getReadChapters(mangaId);
+            if (reads.indexOf(chapterId) === -1) {
+                reads.push(chapterId);
+                localStorage.setItem(getUserPrefix() + 'read_' + mangaId, JSON.stringify(reads));
+            }
+        }
+
+        function lastReadChapter(mangaId) {
+            const item = getHistory().find(function (m) { return m.url === mangaId; });
+            if (!item) return null;
+            if (item.lastReadUrl) {
+                const byUrl = state.chapterList.find(function (c) { return (c.url || '') === item.lastReadUrl; });
+                if (byUrl) return byUrl;
+            }
+            if (item.lastRead) {
+                return state.chapterList.find(function (c) { return chapterName(c) === item.lastRead; }) || null;
+            }
+            return null;
+        }
+
+        /* =====================================================================
+           REGISTRI OBJEK UNTUK EVENT DELEGATION
+        ===================================================================== */
+        function mangaKey(manga) {
+            if (!manga) return '';
+            if (!state.mangaKeys.has(manga)) {
+                const key = 'm' + (++state.seq);
+                state.mangaKeys.set(manga, key);
+                state.mangaMap.set(key, manga);
+            }
+            return state.mangaKeys.get(manga);
+        }
+
+        function chapterKey(chapter) {
+            if (!chapter) return '';
+            if (!state.chapterKeys.has(chapter)) {
+                const key = 'c' + (++state.seq);
+                state.chapterKeys.set(chapter, key);
+                state.chapterMap.set(key, chapter);
+            }
+            return state.chapterKeys.get(chapter);
+        }
+
+        /* =====================================================================
+           KOMPONEN KARTU
+        ===================================================================== */
+        function mangaCard(manga, options) {
+            options = options || {};
+            const key = mangaKey(manga);
+            const cover = proxy(manga.thumbnail);
+            const saved = isBookmarked(manga.url);
+            const meta = options.meta || (manga.lastRead ? 'Lanjutkan baca' : '');
+            const rank = options.rank;
+            const badge = manga.lastRead
+                ? '<span class="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-md bg-indigo-600/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow-lg backdrop-blur">' + esc(manga.lastRead) + '</span>'
+                : '';
+
+            return '' +
+                '<article class="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] transition duration-300 hover:-translate-y-1 hover:border-indigo-400/40 hover:bg-white/[0.05] hover:shadow-[0_26px_50px_-26px_rgba(79,70,229,.65)]" data-manga-key="' + key + '" role="button" tabindex="0" aria-label="' + esc(manga.title) + '">' +
+                    '<div class="relative aspect-[2/3] overflow-hidden bg-ink-900">' +
+                        '<img src="' + cover + '" alt="' + esc(manga.title) + '" loading="lazy" onerror="imgFallback(this)" class="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]">' +
+                        '<div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#070a12] via-transparent to-transparent opacity-80"></div>' +
+                        (rank ? '<span class="absolute left-2 top-2 grid h-6 min-w-6 place-items-center rounded-md bg-black/60 px-1.5 text-[11px] font-bold text-white backdrop-blur border border-white/10">#' + rank + '</span>' : '') +
+                        badge +
+                        '<button type="button" data-bookmark="' + key + '" aria-label="Simpan komik" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-black/55 backdrop-blur transition hover:scale-105 hover:bg-indigo-500/80 hover:text-white ' + (saved ? 'text-indigo-300 opacity-100' : 'text-white/75 opacity-0 group-hover:opacity-100 focus:opacity-100') + '">' +
+                            ICONS.bookmark(saved) +
+                        '</button>' +
+                        '<div class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition duration-300 group-hover:opacity-100">' +
+                            '<span class="grid h-10 w-10 place-items-center rounded-full bg-indigo-500/90 text-white shadow-glow backdrop-blur">' + ICONS.play + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex flex-1 flex-col gap-1 p-3">' +
+                        '<h3 class="line-clamp-2 font-display text-[13px] font-semibold leading-snug text-slate-100 transition group-hover:text-indigo-300">' + esc(manga.title) + '</h3>' +
+                        (meta ? '<p class="mt-auto pt-1 text-[10.5px] font-medium text-slate-500">' + esc(meta) + '</p>' : '') +
+                    '</div>' +
+                '</article>';
+        }
+
+        function skeletonCard() {
+            return '<div class="overflow-hidden rounded-2xl border border-white/[0.05] bg-white/[0.02]">' +
+                '<div class="skeleton aspect-[2/3] w-full"></div>' +
+                '<div class="space-y-2 p-3"><div class="skeleton h-3 w-4/5 rounded"></div><div class="skeleton h-3 w-2/5 rounded"></div></div>' +
+            '</div>';
+        }
+
+        function skeletonGrid(count) {
+            let out = '<div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">';
+            for (let i = 0; i < (count || 12); i++) out += skeletonCard();
+            return out + '</div>';
+        }
+
+        function sectionHeader(title, subtitle, chip) {
+            return '<div class="mb-5 flex items-end justify-between gap-3">' +
+                '<div>' +
+                    '<h2 class="font-display text-xl font-extrabold tracking-tight text-white sm:text-2xl">' + title + '</h2>' +
+                    (subtitle ? '<p class="mt-0.5 text-xs text-slate-500 sm:text-sm">' + subtitle + '</p>' : '') +
+                '</div>' +
+                (chip ? '<span class="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-400">' + chip + '</span>' : '') +
+            '</div>';
+        }
+
+        function emptyState(icon, title, description, action) {
+            return '<div class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-white/[0.015] px-6 py-20 text-center">' +
+                '<div class="mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-500">' + icon + '</div>' +
+                '<h2 class="font-display text-lg font-bold text-slate-200">' + title + '</h2>' +
+                '<p class="mt-1.5 max-w-sm text-sm text-slate-500">' + description + '</p>' +
+                (action ? '<div class="mt-6">' + action + '</div>' : '') +
+            '</div>';
+        }
+
+        function errorState(title, description) {
+            return '<div class="flex flex-col items-center justify-center rounded-3xl border border-rose-400/15 bg-rose-500/[0.04] px-6 py-16 text-center">' +
+                '<div class="mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-rose-400/20 bg-rose-500/10 text-rose-300">' + ICONS.alert + '</div>' +
+                '<h2 class="font-display text-lg font-bold text-slate-100">' + title + '</h2>' +
+                '<p class="mt-1.5 max-w-md text-sm text-slate-400">' + description + '</p>' +
+                '<button data-retry="1" class="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white">' + ICONS.refresh + ' Coba lagi</button>' +
+            '</div>';
+        }
+
+        /* =====================================================================
+           NAVIGASI & MODE
+        ===================================================================== */
+        function setActiveNav(view) {
+            document.querySelectorAll('[data-nav]').forEach(function (el) {
+                el.classList.toggle('is-active', el.getAttribute('data-nav') === view);
+            });
+        }
+
+        function setStandardMode() {
+            appEl.classList.remove('hidden');
+            appHeader.classList.remove('hidden');
+            mobileNav.classList.remove('hidden');
+            appFooter.classList.remove('hidden');
+            readerUI.classList.add('hidden');
+            document.body.classList.remove('reader-open');
+        }
+
+        function setReaderMode() {
+            appEl.classList.add('hidden');
+            appHeader.classList.add('hidden');
+            mobileNav.classList.add('hidden');
+            appFooter.classList.add('hidden');
+            readerUI.classList.remove('hidden');
+            document.body.classList.add('reader-open');
+            state.readerVisible = true;
+            syncReaderUI();
+        }
+
+        function syncReaderUI() {
+            const top = document.getElementById('reader-top');
+            const bottom = document.getElementById('reader-bottom');
+            if (state.readerVisible) {
+                top.classList.remove('-translate-y-full', 'opacity-0');
+                bottom.classList.remove('translate-y-24', 'opacity-0');
+            } else {
+                top.classList.add('-translate-y-full', 'opacity-0');
+                bottom.classList.add('translate-y-24', 'opacity-0');
+            }
+        }
+
+        let navToken = 0;
+        async function navigate(view, query) {
+            const token = ++navToken;
+            state.view = view;
+            if (view === 'pencarian') state.searchQuery = query || '';
+            if (view === 'pencarian') document.getElementById('searchInput').value = state.searchQuery;
+
+            setStandardMode();
+            setActiveNav(view);
+            appEl.style.opacity = '0';
+            window.scrollTo(0, 0);
+
+            await new Promise(function (resolve) { setTimeout(resolve, 140); });
+            if (token !== navToken) return;
+
+            try {
+                if (view === 'beranda') await renderHome(1);
+                else if (view === 'pencarian') await renderSearch(state.searchQuery, 1);
+                else if (view === 'riwayat') renderHistory();
+                else if (view === 'tersimpan') renderBookmarks();
+                else if (view === 'profil') renderProfil();
+                else if (view === 'detail') {
+                    if (state.currentManga) renderDetail();
+                    else await renderHome(1);
+                }
+            } catch (err) {
+                console.error(err);
+                appEl.innerHTML = errorState('Terjadi kesalahan', 'Silakan coba lagi beberapa saat lagi.');
+            } finally {
+                if (token === navToken) appEl.style.opacity = '1';
+            }
+        }
+
+        /* =====================================================================
+           HALAMAN PROFIL (LOGIN LOKAL)
+        ===================================================================== */
+        window.loginUser = function() {
+            const input = document.getElementById('usernameInput');
+            const name = input ? input.value.trim() : '';
+            if (!name) { 
+                toast('Nama tidak boleh kosong', 'error'); 
+                return; 
+            }
+            localStorage.setItem('mw_current_user', name);
+            toast('Berhasil masuk sebagai ' + name, 'success');
+            navigate('beranda');
+        }
+
+        window.logoutUser = function() {
+            localStorage.removeItem('mw_current_user');
+            toast('Berhasil keluar', 'success');
+            navigate('profil');
+        }
+
+        function renderProfil() {
+            const user = localStorage.getItem('mw_current_user');
+            
+            if (user) {
+                appEl.innerHTML = 
+                    '<div class="animate-fade-up mx-auto max-w-md mt-6 sm:mt-10">' +
+                        sectionHeader('Profil Akun', 'Data kamu tersimpan secara lokal') +
+                        '<div class="rounded-3xl border border-white/10 bg-white/5 p-6 text-center shadow-card">' +
+                            '<div class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-indigo-500/20 text-indigo-300 ring-4 ring-indigo-500/10">' +
+                                ICONS.user +
+                            '</div>' +
+                            '<h3 class="font-display text-xl font-bold text-white">' + esc(user) + '</h3>' +
+                            '<p class="mt-2 text-[13px] leading-relaxed text-slate-400">Semua riwayat bacaan dan komik tersimpan dipisahkan khusus untuk akun <span class="font-semibold text-slate-300">' + esc(user) + '</span> di perangkat ini.</p>' +
+                            '<button onclick="logoutUser()" class="mt-8 w-full rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-400 transition hover:bg-rose-500/20">Keluar / Ganti Akun</button>' +
+                        '</div>' +
+                    '</div>';
+            } else {
+                appEl.innerHTML = 
+                    '<div class="animate-fade-up mx-auto max-w-md mt-6 sm:mt-10">' +
+                        sectionHeader('Masuk Profil', 'Simpan riwayat bacaanmu') +
+                        '<div class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-card">' +
+                            '<p class="mb-5 text-[13px] leading-relaxed text-slate-400">Masukkan namamu untuk memisahkan data riwayat dan komik favorit di perangkat ini. Data tidak akan menimpa pengguna lain.</p>' +
+                            '<input type="text" id="usernameInput" placeholder="Ketik nama kamu..." onkeydown="if(event.key===\'Enter\') loginUser()" class="h-12 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-indigo-400 focus:bg-white/[0.06] focus:ring-1 focus:ring-indigo-400">' +
+                            '<button onclick="loginUser()" class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-sm font-semibold text-white shadow-glow transition hover:from-indigo-400 hover:to-violet-400">Masuk & Mulai Membaca ' + ICONS.arrowRight + '</button>' +
+                        '</div>' +
+                    '</div>';
+            }
+        }
+
+        /* =====================================================================
+           HALAMAN BERANDA & PAGINASI
+        ===================================================================== */
+        async function renderHome(page = 1) {
+            if (page === 1) {
+                state.page = 1;
+                state.home = [];
+                appEl.innerHTML =
+                    '<div class="mb-8">' +
+                        '<div class="skeleton h-[19rem] w-full rounded-3xl sm:h-72"></div>' +
+                    '</div>' +
+                    '<div class="mb-5"><div class="skeleton h-6 w-44 rounded-lg"></div><div class="skeleton mt-2 h-3 w-64 rounded"></div></div>' +
+                    skeletonGrid(12);
+            }
+
+            try {
+                const json = await fetchAPI('/api/manga/popular?page=' + page);
+                const mangas = toMangaList(json);
+                state.hasNextPage = json.data && json.data.hasNextPage;
+
+                if (page === 1 && !mangas.length) {
+                    appEl.innerHTML = emptyState(ICONS.book, 'Belum ada komik', 'Sumber data tidak mengembalikan daftar komik populer.', '<button data-nav="beranda" class="rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400">Muat ulang</button>');
+                    return;
+                }
+                
+                if (page === 1) {
+                    state.home = mangas;
+                } else {
+                    state.home = state.home.concat(mangas);
+                }
+                state.page = page;
+                state.featuredIndex = 0;
+                renderHomeContent();
+            } catch (err) {
+                console.error(err);
+                if (page === 1) {
+                    appEl.innerHTML = errorState('Gagal memuat beranda', 'Pastikan API berjalan di <span class="font-mono text-slate-300">' + esc(BASE_URL) + '</span> lalu coba lagi.');
+                }
+            }
+        }
+
+        function heroHTML(manga) {
+            if (!manga) return '';
+            const key = mangaKey(manga);
+            const cover = proxy(manga.thumbnail);
+            const features = state.home.slice(0, 5);
+
+            let thumbs = '';
+            features.forEach(function (m, i) {
+                thumbs += '<button type="button" data-feature-index="' + i + '" aria-label="Tampilkan ' + esc(m.title) + '" class="relative h-14 w-10 shrink-0 overflow-hidden rounded-lg border transition duration-300 sm:h-16 sm:w-11 ' +
+                    (i === state.featuredIndex ? 'border-indigo-400 opacity-100 ring-2 ring-indigo-500/30' : 'border-white/10 opacity-45 hover:opacity-90') + '">' +
+                    '<img src="' + proxy(m.thumbnail) + '" alt="" loading="lazy" onerror="imgFallback(this)" class="h-full w-full object-cover">' +
+                '</button>';
+            });
+
+            return '<section class="relative mb-10 overflow-hidden rounded-3xl border border-white/[0.07] bg-ink-900 shadow-card animate-fade-up">' +
+                '<img src="' + cover + '" alt="" aria-hidden="true" class="absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl">' +
+                '<div class="absolute inset-0 bg-gradient-to-tr from-[#070a12] via-[#070a12]/90 to-[#070a12]/40"></div>' +
+                '<div class="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-indigo-500/20 blur-3xl"></div>' +
+                '<div class="relative flex flex-col items-center gap-6 p-5 sm:p-8 md:flex-row md:items-end md:gap-9 md:p-10">' +
+                    '<div class="w-32 shrink-0 md:w-44">' +
+                        '<div class="aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 shadow-[0_30px_60px_-20px_rgba(0,0,0,.9)]">' +
+                            '<img src="' + cover + '" alt="' + esc(manga.title) + '" onerror="imgFallback(this)" class="h-full w-full object-cover">' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="min-w-0 flex-1 text-center md:text-left">' +
+                        '<span class="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-indigo-300">' + ICONS.flame + ' Trending minggu ini</span>' +
+                        '<h1 class="mt-3 line-clamp-2 font-display text-2xl font-extrabold leading-tight text-white sm:text-4xl">' + esc(manga.title) + '</h1>' +
+                        '<div class="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs text-slate-400 md:justify-start">' +
+                            '<span class="inline-flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>Chapter terbaru tersedia</span>' +
+                            '<span class="hidden h-1 w-1 rounded-full bg-slate-600 sm:block"></span>' +
+                            '<span>Baca gratis &amp; cepat</span>' +
+                        '</div>' +
+                        '<div class="mt-6 flex flex-col gap-2.5 sm:flex-row sm:justify-center md:justify-start">' +
+                            '<button data-manga-key="' + key + '" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:from-indigo-400 hover:to-violet-400">' + ICONS.play + ' Mulai Baca</button>' +
+                            '<button data-manga-key="' + key + '" class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white">Lihat Detail ' + ICONS.arrowRight + '</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex gap-2 md:flex-col md:pb-1">' + thumbs + '</div>' +
+                '</div>' +
+            '</section>';
+        }
+
+        function renderHomeContent() {
+            const featured = state.home[state.featuredIndex] || state.home[0];
+            const cards = state.home.map(function (m, i) { return mangaCard(m, { rank: i + 1 }); }).join('');
+            
+            let loadMoreHTML = '';
+            if (state.hasNextPage) {
+                loadMoreHTML = '<div class="mt-10 flex justify-center pb-8"><button type="button" data-load-more="1" class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white">' + ICONS.loadMore + ' Muat Lebih Banyak</button></div>';
+            }
+
+            appEl.innerHTML =
+                '<div id="hero-wrap">' + heroHTML(featured) + '</div>' +
+                '<section class="animate-fade-up">' +
+                    sectionHeader('Komik Populer', 'Pilihan pembaca minggu ini', state.home.length + ' judul') +
+                    '<div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">' + cards + '</div>' +
+                '</section>' + 
+                loadMoreHTML +
+                '<p class="mt-8 text-center text-[11px] text-slate-600">Data disediakan oleh sumber pihak ketiga. MangaWeb tidak menyimpan berkas komik.</p>';
+        }
+
+        /* =====================================================================
+           PENCARIAN & PAGINASI
+        ===================================================================== */
+        async function renderSearch(query, page = 1) {
+            if (page === 1) {
+                state.page = 1;
+                state.searchResults = [];
+                appEl.innerHTML = '<div class="mb-7"><div class="skeleton h-8 w-64 rounded-lg"></div></div>' + skeletonGrid(12);
+            }
+
+            try {
+                const json = await fetchAPI('/api/manga/search?q=' + encodeURIComponent(query) + '&page=' + page);
+                const list = toMangaList(json);
+                state.hasNextPage = json.data && json.data.hasNextPage;
+
+                if (page === 1 && !list.length) {
+                    appEl.innerHTML = emptyState(ICONS.search,
+                        'Komik tidak ditemukan',
+                        'Tidak ada hasil untuk <span class="font-semibold text-slate-300">“' + esc(query) + '”</span>. Coba kata kunci lain.',
+                        '<button data-nav="beranda" class="rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400">Kembali ke beranda</button>');
+                    return;
+                }
+
+                if (page === 1) {
+                    state.searchResults = list;
+                } else {
+                    state.searchResults = state.searchResults.concat(list);
+                }
+                state.page = page;
+
+                const cards = state.searchResults.map(function (m) { return mangaCard(m); }).join('');
+                
+                let loadMoreHTML = '';
+                if (state.hasNextPage) {
+                    loadMoreHTML = '<div class="mt-10 flex justify-center pb-8"><button type="button" data-load-more="1" class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white">' + ICONS.loadMore + ' Muat Lebih Banyak</button></div>';
+                }
+
+                appEl.innerHTML =
+                    '<div class="animate-fade-up">' +
+                        '<div class="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">' +
+                            '<div class="min-w-0">' +
+                                '<p class="mb-1.5 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-indigo-400">' + ICONS.search + ' Hasil pencarian</p>' +
+                                '<h1 class="truncate font-display text-2xl font-extrabold text-white sm:text-3xl">“' + esc(query) + '”</h1>' +
+                            '</div>' +
+                            '<div class="flex shrink-0 items-center gap-2">' +
+                                '<span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300">' + state.searchResults.length + ' komik</span>' +
+                                '<button data-nav="beranda" class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white">Reset</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">' + cards + '</div>' +
+                    '</div>' + loadMoreHTML;
+            } catch (err) {
+                console.error(err);
+                if (page === 1) {
+                    appEl.innerHTML = errorState('Pencarian gagal', 'Tidak dapat menghubungi server. Periksa koneksi atau status API.');
+                }
+            }
+        }
+
+        /* =====================================================================
+           RIWAYAT & TERSIMPAN
+        ===================================================================== */
+        function renderHistory() {
+            const list = getHistory();
+            if (!list.length) {
+                appEl.innerHTML = emptyState(ICONS.clock,
+                    'Belum ada riwayat',
+                    'Komik yang kamu baca akan muncul di sini agar mudah dilanjutkan.',
+                    '<button data-nav="beranda" class="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400">Jelajahi komik ' + ICONS.arrowRight + '</button>');
+                return;
+            }
+
+            const cards = list.map(function (m) {
+                return mangaCard(m, { meta: 'Dibaca ' + timeAgo(m.timestamp) });
+            }).join('');
+
+            appEl.innerHTML =
+                '<div class="animate-fade-up">' +
+                    sectionHeader('Riwayat Baca', 'Lanjutkan dari chapter terakhir', list.length + ' judul') +
+                    '<div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">' + cards + '</div>' +
+                '</div>';
+        }
+
+        function renderBookmarks() {
+            const list = getBookmarks();
+            if (!list.length) {
+                appEl.innerHTML = emptyState(ICONS.bookmark(false),
+                    'Belum ada komik tersimpan',
+                    'Tekan ikon bookmark pada komik untuk menyimpannya ke daftar favorit.',
+                    '<button data-nav="beranda" class="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400">Temukan komik ' + ICONS.arrowRight + '</button>');
+                return;
+            }
+
+            const cards = list.map(function (m) { return mangaCard(m); }).join('');
+            appEl.innerHTML =
+                '<div class="animate-fade-up">' +
+                    sectionHeader('Komik Tersimpan', 'Koleksi favoritmu', list.length + ' judul') +
+                    '<div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">' + cards + '</div>' +
+                '</div>';
+        }
+
+        /* =====================================================================
+           HALAMAN DETAIL
+        ===================================================================== */
+        async function openDetail(manga) {
+            if (!manga) return;
+
+            if (state.view !== 'detail') {
+                state.returnView = state.view;
+                state.returnQuery = state.searchQuery;
+            }
+
+            state.view = 'detail';
+            state.currentManga = manga;
+            state.detailData = null;
+            state.chapterList = [];
+            state.chapterQuery = '';
+            state.sortDesc = true;
+            state.chapterMap.clear();
+            state.chapterKeys = new WeakMap();
+
+            setStandardMode();
+            setActiveNav('detail');
+            window.scrollTo(0, 0);
+            appEl.innerHTML = detailSkeleton();
+            appEl.style.opacity = '1';
+
+            const id = manga.url;
+            const results = await Promise.allSettled([
+                fetchAPI('/api/manga/' + id),
+                fetchAPI('/api/manga/' + id + '/chapters')
+            ]);
+
+            if (state.currentManga !== manga) return;
+
+            if (results[0].status === 'fulfilled') {
+                const payload = results[0].value;
+                if (payload && payload.data) state.detailData = payload.data;
+            }
+            if (results[1].status === 'fulfilled') {
+                state.chapterList = toChapterList(results[1].value);
+            }
+            renderDetail();
+        }
+
+        function detailSkeleton() {
+            let rows = '';
+            for (let i = 0; i < 6; i++) rows += '<div class="skeleton h-12 rounded-xl"></div>';
+            return '<div class="animate-fade-up">' +
+                '<div class="skeleton mb-4 h-9 w-28 rounded-xl"></div>' +
+                '<div class="skeleton h-72 w-full rounded-3xl sm:h-80"></div>' +
+                '<div class="skeleton mt-6 h-16 w-full rounded-3xl"></div>' +
+                '<div class="mt-6 space-y-1.5 rounded-3xl border border-white/[0.06] p-3">' + rows + '</div>' +
+            '</div>';
+        }
+
+        function filteredChapters() {
+            let list = state.chapterList.slice();
+            if (!state.sortDesc) list.reverse();
+            const q = state.chapterQuery.trim().toLowerCase();
+            if (q) {
+                list = list.filter(function (c) { return chapterName(c).toLowerCase().indexOf(q) !== -1; });
+            }
+            return list;
+        }
+
+        function chapterRowsHTML() {
+            const list = filteredChapters();
+            if (!list.length) {
+                return '<div class="px-4 py-10 text-center text-sm text-slate-500">Chapter tidak ditemukan.</div>';
+            }
+            const readSet = new Set(getReadChapters(state.currentManga.url));
+
+            return list.map(function (chapter) {
+                const key = chapterKey(chapter);
+                const read = chapter.url ? readSet.has(chapter.url) : false;
+                const name = chapterName(chapter);
+                const match = name.match(/\d+(?:\.\d+)?/);
+                const badge = read ? ICONS.check : '<span class="tabular-nums">' + esc(match ? match[0] : '•') + '</span>';
+
+                return '<button type="button" data-chapter-key="' + key + '" class="group flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left transition hover:border-white/10 hover:bg-white/[0.04]">' +
+                    '<span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border text-[10px] font-bold ' +
+                        (read ? 'border-white/5 bg-white/[0.03] text-indigo-400/50' : 'border-indigo-400/20 bg-indigo-500/10 text-indigo-300') + '">' +
+                        badge +
+                    '</span>' +
+                    '<span class="min-w-0 flex-1">' +
+                        '<span class="block truncate text-[13px] font-medium ' + (read ? 'text-slate-500' : 'text-slate-200 group-hover:text-white') + '">' + esc(name) + '</span>' +
+                        '<span class="block text-[10.5px] text-slate-600">' + (read ? 'Sudah dibaca' : 'Belum dibaca') + '</span>' +
+                    '</span>' +
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-indigo-300"><path d="m9 18 6-6-6-6"/></svg>' +
+                '</button>';
+            }).join('');
+        }
+
+        function updateChapterCount() {
+            const el = document.getElementById('chapter-count');
+            if (!el) return;
+            const total = state.chapterList.length;
+            const read = getReadChapters(state.currentManga.url).length;
+            if (state.chapterQuery.trim()) {
+                el.textContent = filteredChapters().length + ' dari ' + total + ' chapter';
+            } else {
+                el.textContent = total + ' chapter · ' + read + ' sudah dibaca';
+            }
+        }
+
+        window.handleChapterSearch = function (value) {
+            state.chapterQuery = value;
+            const listEl = document.getElementById('chapter-list');
+            if (listEl) listEl.innerHTML = chapterRowsHTML();
+            updateChapterCount();
+        };
+
+        window.toggleSortChapter = function () {
+            state.sortDesc = !state.sortDesc;
+            renderDetail();
+        };
+
+        window.handleBookmark = function () {
+            if (!state.currentManga) return;
+            const saved = toggleBookmark(state.currentManga);
+            syncBookmarkButtons();
+            updateDetailBookmark();
+            toast(saved ? 'Ditambahkan ke komik tersimpan' : 'Dihapus dari komik tersimpan', saved ? 'success' : 'info');
+        };
+
+        function updateDetailBookmark() {
+            const manga = state.currentManga;
+            if (!manga) return;
+            const saved = isBookmarked(manga.url);
+            const btn = document.getElementById('detailBookmark');
+            const icon = document.getElementById('detailBookmarkIcon');
+            const label = document.getElementById('detailBookmarkLabel');
+            if (!btn) return;
+            if (icon) icon.innerHTML = ICONS.bookmark(saved);
+            if (label) label.textContent = saved ? 'Tersimpan' : 'Simpan';
+            btn.setAttribute('aria-pressed', saved ? 'true' : 'false');
+            btn.classList.toggle('border-indigo-400/40', saved);
+            btn.classList.toggle('bg-indigo-500/10', saved);
+            btn.classList.toggle('text-indigo-200', saved);
+            btn.classList.toggle('border-white/10', !saved);
+            btn.classList.toggle('bg-white/5', !saved);
+            btn.classList.toggle('text-slate-200', !saved);
+        }
+
+        function renderDetail() {
+            const manga = state.currentManga;
+            if (!manga) { navigate('beranda'); return; }
+
+            const info = state.detailData || {};
+            const title = info.title || manga.title;
+            const cover = proxy(manga.thumbnail);
+            const status = String(info.status || 'Tidak diketahui');
+            const statusLower = status.toLowerCase();
+            const author = info.author || 'Tidak diketahui';
+            const rating = parseFloat(info.rating) || 0;
+            const description = info.description || info.synopsis || info.summary || '';
+            const genres = (Array.isArray(info.genres) ? info.genres : [])
+                .map(function (g) { return typeof g === 'string' ? g : (g && g.name); })
+                .filter(Boolean);
+            const total = state.chapterList.length;
+            const readCount = getReadChapters(manga.url).length;
+            const progress = total ? Math.min(100, Math.round((readCount / total) * 100)) : 0;
+            const saved = isBookmarked(manga.url);
+            const lastRead = lastReadChapter(manga.url);
+            const firstChapter = state.chapterList.length ? state.chapterList[state.chapterList.length - 1] : null;
+            const primary = lastRead || firstChapter;
+
+            let statusClass = 'border-white/10 bg-white/5 text-slate-300';
+            if (statusLower.indexOf('complete') !== -1 || statusLower.indexOf('tamat') !== -1) {
+                statusClass = 'border-sky-400/25 bg-sky-500/10 text-sky-300';
+            } else if (statusLower.indexOf('ongoing') !== -1 || statusLower.indexOf('berjalan') !== -1) {
+                statusClass = 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300';
+            }
+
+            const genresHTML = genres.length
+                ? genres.map(function (g) {
+                    return '<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-slate-300">' + esc(g) + '</span>';
+                }).join('')
+                : '<span class="text-[11px] text-slate-600">Tidak ada genre</span>';
+
+            const ratingHTML = rating > 0
+                ? starsHTML(info.rating) + '<span class="ml-1.5 text-xs font-semibold text-slate-300">' + esc(String(info.rating).replace('.', ',')) + '</span>'
+                : '<span class="text-xs text-slate-500">Belum ada rating</span>';
+
+            const primaryHTML = primary
+                ? '<button type="button" data-chapter-key="' + chapterKey(primary) + '" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:from-indigo-400 hover:to-violet-400">' +
+                    ICONS.play + (lastRead ? 'Lanjutkan ' + esc(chapterName(lastRead)) : 'Baca Chapter Pertama') +
+                '</button>'
+                : '<button type="button" disabled class="inline-flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-500">Belum ada chapter</button>';
+
+            appEl.innerHTML =
+            '<div class="animate-fade-up">' +
+                '<div class="mb-4 flex items-center justify-between gap-3">' +
+                    '<button type="button" data-back="1" class="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white">' + ICONS.arrowLeft + ' Kembali</button>' +
+                    '<span class="text-[11px] font-medium text-slate-600">Detail Komik</span>' +
+                '</div>' +
+
+                '<section class="relative overflow-hidden rounded-3xl border border-white/[0.07] bg-ink-900 shadow-card">' +
+                    '<img src="' + cover + '" alt="" aria-hidden="true" class="absolute inset-0 h-full w-full scale-110 object-cover opacity-25 blur-2xl">' +
+                    '<div class="absolute inset-0 bg-gradient-to-tr from-[#070a12] via-[#070a12]/90 to-[#070a12]/40"></div>' +
+                    '<div class="relative flex flex-col gap-6 p-5 sm:p-8 md:flex-row md:items-center md:gap-8 lg:p-9">' +
+                        '<div class="mx-auto w-36 shrink-0 sm:w-44 md:mx-0 md:w-52">' +
+                            '<div class="aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 shadow-[0_30px_60px_-20px_rgba(0,0,0,.9)]">' +
+                                '<img src="' + cover + '" alt="' + esc(title) + '" onerror="imgFallback(this)" class="h-full w-full object-cover">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="min-w-0 flex-1 text-center md:text-left">' +
+                            '<div class="flex flex-wrap items-center justify-center gap-2 md:justify-start">' +
+                                '<span class="rounded-full border px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wider ' + statusClass + '">' + esc(status) + '</span>' +
+                                '<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10.5px] font-semibold text-slate-400">' + total + ' Chapter</span>' +
+                            '</div>' +
+                            '<h1 class="mt-3 font-display text-2xl font-extrabold leading-tight text-white sm:text-3xl lg:text-4xl">' + esc(title) + '</h1>' +
+                            '<div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 md:justify-start">' +
+                                '<span class="inline-flex items-center">' + ratingHTML + '</span>' +
+                                '<span class="inline-flex items-center gap-1.5 text-xs text-slate-400">' + ICONS.user + ' <span class="font-medium text-slate-300">' + esc(author) + '</span></span>' +
+                            '</div>' +
+                            '<div class="mt-4 flex flex-wrap justify-center gap-1.5 md:justify-start">' + genresHTML + '</div>' +
+                            (description ? '<p class="mt-4 line-clamp-3 text-[13px] leading-relaxed text-slate-400">' + esc(description) + '</p>' : '') +
+                            '<div class="mt-6 flex flex-col gap-2.5 sm:flex-row">' +
+                                primaryHTML +
+                                '<button type="button" id="detailBookmark" onclick="handleBookmark()" aria-pressed="' + (saved ? 'true' : 'false') + '" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition sm:flex-none ' +
+                                    (saved ? 'border-indigo-400/40 bg-indigo-500/10 text-indigo-200 hover:bg-indigo-500/15' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-white') + '">' +
+                                    '<span id="detailBookmarkIcon" class="inline-flex">' + ICONS.bookmark(saved) + '</span>' +
+                                    '<span id="detailBookmarkLabel">' + (saved ? 'Tersimpan' : 'Simpan') + '</span>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</section>' +
+
+                '<section class="mt-6 overflow-hidden rounded-3xl border border-white/[0.07] bg-white/[0.02]">' +
+                    '<div class="flex flex-col gap-3 border-b border-white/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">' +
+                        '<div class="min-w-0">' +
+                            '<h2 class="font-display text-lg font-bold text-white">Daftar Chapter</h2>' +
+                            '<p class="mt-0.5 text-xs text-slate-500"><span id="chapter-count">' + total + ' chapter · ' + readCount + ' sudah dibaca</span></p>' +
+                        '</div>' +
+                        '<div class="flex items-center gap-2">' +
+                            '<div class="relative min-w-0 flex-1 sm:flex-none">' +
+                                '<span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">' + ICONS.search + '</span>' +
+                                '<input id="chapterSearch" type="text" value="' + esc(state.chapterQuery) + '" oninput="handleChapterSearch(this.value)" placeholder="Cari chapter…" class="h-9 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 outline-none transition focus:border-indigo-400/50 focus:bg-white/[0.06] sm:w-48">' +
+                            '</div>' +
+                            '<button type="button" onclick="toggleSortChapter()" class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.08] hover:text-white">' +
+                                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 transition-transform ' + (state.sortDesc ? '' : 'rotate-180') + '"><path d="M3 6h13M3 10h9M3 14h5"/><path d="M17 10v10M14 17l3 3 3-3"/></svg>' +
+                                (state.sortDesc ? 'Terbaru' : 'Terlama') +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="h-1 w-full bg-white/[0.04]"><div class="h-full rounded-r-full bg-gradient-to-r from-indigo-500 to-violet-400 transition-all" style="width:' + progress + '%"></div></div>' +
+                    '<div id="chapter-list" class="scroll-slim max-h-[560px] space-y-1 overflow-y-auto p-2.5">' + chapterRowsHTML() + '</div>' +
+                '</section>' +
+            '</div>';
+
+            updateChapterCount();
+        }
+
+        /* =====================================================================
+           READER
+        ===================================================================== */
+        function readerLoadingHTML() {
+            return '<div class="flex h-[60vh] flex-col items-center justify-center gap-3 text-sm text-slate-400">' +
+                '<div class="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-indigo-400"></div>' +
+                '<span>Menyiapkan halaman…</span>' +
+            '</div>';
+        }
+
+        function readerErrorHTML(message) {
+            return '<div class="flex h-[65vh] flex-col items-center justify-center px-6 text-center">' +
+                '<div class="mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-rose-400/20 bg-rose-500/10 text-rose-300">' + ICONS.alert + '</div>' +
+                '<p class="max-w-sm text-sm font-medium text-slate-300">' + message + '</p>' +
+                '<div class="mt-6 flex gap-2">' +
+                    '<button type="button" onclick="event.stopPropagation(); retryChapter()" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15">' + ICONS.refresh + ' Coba lagi</button>' +
+                    '<button type="button" onclick="event.stopPropagation(); backToDetail()" class="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/5">Kembali</button>' +
+                '</div>' +
+            '</div>';
+        }
+
+        window.retryChapter = function () {
+            if (state.currentChapter) openReader(state.currentChapter);
+        };
+
+        function updateReaderNav() {
+            const prev = document.getElementById('btn-prev-chap');
+            const next = document.getElementById('btn-next-chap');
+            if (prev) prev.style.display = state.readerPrev ? 'flex' : 'none';
+            if (next) next.style.display = state.readerNext ? 'flex' : 'none';
+        }
+
+        function updateReaderProgress() {
+            if (readerUI.classList.contains('hidden')) return;
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            const pct = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
+            const bar = document.getElementById('reader-progress');
+            const label = document.getElementById('reader-percent');
+            if (bar) bar.style.width = pct.toFixed(1) + '%';
+            if (label) label.textContent = Math.round(pct) + '%';
+        }
+
+        async function openReader(chapter) {
+            if (!chapter || !state.currentManga) return;
+
+            const manga = state.currentManga;
+            state.currentChapter = chapter;
+            setReaderMode();
+            window.scrollTo(0, 0);
+
+            saveHistory(manga, chapter);
+            markChapterRead(manga.url, chapter.url);
+
+            document.getElementById('reader-manga-title').textContent = manga.title;
+            document.getElementById('reader-chapter-title').textContent = chapterName(chapter);
+
+            const pagesEl = document.getElementById('reader-pages');
+            pagesEl.innerHTML = readerLoadingHTML();
+
+            const list = state.chapterList;
+            let idx = list.indexOf(chapter);
+            if (idx === -1 && chapter.url) {
+                idx = list.findIndex(function (c) { return (c.url || '') === chapter.url; });
+            }
+            state.readerNext = idx > 0 ? list[idx - 1] : null;
+            state.readerPrev = (idx >= 0 && idx < list.length - 1) ? list[idx + 1] : null;
+            updateReaderNav();
+            updateReaderProgress();
+
+            try {
+                const json = await fetchAPI('/api/manga/chapter/' + chapter.url + '/pages');
+                const pages = toPageList(json);
+                if (!pages.length) throw new Error('Halaman kosong');
+
+                let html = '';
+                pages.forEach(function (page, i) {
+                    const url = page && (page.imageUrl || page.url) || page;
+                    html += '<img src="' + proxy(url) + '" alt="Halaman ' + (i + 1) + '" ' +
+                        (i > 0 ? 'loading="lazy" ' : '') +
+                        'onerror="imgFallback(this)" ' +
+                        'class="mx-auto block w-full max-w-3xl select-none">';
+                });
+                pagesEl.innerHTML = html;
+                window.scrollTo(0, 0);
+                updateReaderProgress();
+            } catch (err) {
+                console.error(err);
+                const maintenance = /502/.test(err.message);
+                pagesEl.innerHTML = readerErrorHTML(
+                    maintenance
+                        ? 'Server sumber sedang maintenance (502). Silakan coba lagi nanti.'
+                        : 'Gagal memuat gambar chapter. Periksa koneksi lalu coba lagi.'
+                );
+            }
+        }
+
+        window.toggleReaderUI = function () {
+            state.readerVisible = !state.readerVisible;
+            syncReaderUI();
+        };
+
+        window.backToDetail = function () {
+            setStandardMode();
+            state.view = 'detail';
+            setActiveNav('detail');
+            window.scrollTo(0, 0);
+            appEl.style.opacity = '1';
+            if (state.currentManga) renderDetail();
+            else navigate('beranda');
+        };
+
+        /* =====================================================================
+           SINKRONISASI TOMBOL BOOKMARK
+        ===================================================================== */
+        function syncBookmarkButtons() {
+            document.querySelectorAll('[data-bookmark]').forEach(function (btn) {
+                const manga = state.mangaMap.get(btn.getAttribute('data-bookmark'));
+                if (!manga) return;
+                const saved = isBookmarked(manga.url);
+                btn.innerHTML = ICONS.bookmark(saved);
+                btn.classList.toggle('text-indigo-300', saved);
+                btn.classList.toggle('text-white/75', !saved);
+                btn.classList.toggle('opacity-100', saved);
+            });
+        }
+
+        /* =====================================================================
+           EVENT GLOBAL
+        ===================================================================== */
+        document.getElementById('brand').addEventListener('click', function () {
+            navigate('beranda');
+        });
+
+        document.getElementById('searchForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const value = document.getElementById('searchInput').value.trim();
+            if (!value) {
+                document.getElementById('searchInput').focus();
+                return;
+            }
+            navigate('pencarian', value);
+        });
+
+        document.addEventListener('click', function (e) {
+            
+            // Tangkap klik tombol "Muat Lebih Banyak"
+            const loadMoreBtn = e.target.closest('[data-load-more]');
+            if (loadMoreBtn) {
+                e.preventDefault();
+                loadMoreBtn.innerHTML = '<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"></span> Memuat...';
+                if (state.view === 'beranda') {
+                    renderHome(state.page + 1);
+                } else if (state.view === 'pencarian') {
+                    renderSearch(state.searchQuery, state.page + 1);
+                }
+                return;
+            }
+
+            const bookmarkBtn = e.target.closest('[data-bookmark]');
+            if (bookmarkBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const manga = state.mangaMap.get(bookmarkBtn.getAttribute('data-bookmark'));
+                if (manga) {
+                    const saved = toggleBookmark(manga);
+                    syncBookmarkButtons();
+                    updateDetailBookmark();
+                    toast(saved ? 'Ditambahkan ke komik tersimpan' : 'Dihapus dari komik tersimpan', saved ? 'success' : 'info');
+                }
+                return;
+            }
+
+            const backBtn = e.target.closest('[data-back]');
+            if (backBtn) {
+                e.preventDefault();
+                navigate(state.returnView || 'beranda', state.returnQuery || '');
+                return;
+            }
+
+            const navBtn = e.target.closest('[data-nav]');
+            if (navBtn) {
+                e.preventDefault();
+                navigate(navBtn.getAttribute('data-nav'));
+                return;
+            }
+
+            const feature = e.target.closest('[data-feature-index]');
+            if (feature) {
+                e.preventDefault();
+                const index = parseInt(feature.getAttribute('data-feature-index'), 10) || 0;
+                state.featuredIndex = index;
+                const wrap = document.getElementById('hero-wrap');
+                if (wrap) wrap.innerHTML = heroHTML(state.home[index]);
+                return;
+            }
+
+            const chapterBtn = e.target.closest('[data-chapter-key]');
+            if (chapterBtn) {
+                e.preventDefault();
+                const chapter = state.chapterMap.get(chapterBtn.getAttribute('data-chapter-key'));
+                if (chapter) openReader(chapter);
+                return;
+            }
+
+            const card = e.target.closest('[data-manga-key]');
+            if (card) {
+                e.preventDefault();
+                const manga = state.mangaMap.get(card.getAttribute('data-manga-key'));
+                if (manga) openDetail(manga);
+                return;
+            }
+
+            const retry = e.target.closest('[data-retry]');
+            if (retry) {
+                e.preventDefault();
+                navigate(state.view === 'detail' ? 'beranda' : state.view, state.searchQuery);
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            const tag = (document.activeElement && document.activeElement.tagName) || '';
+            const typing = /INPUT|TEXTAREA|SELECT/.test(tag);
+
+            if (e.key === '/' && !typing) {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+                return;
+            }
+
+            if (readerUI.classList.contains('hidden')) {
+                if ((e.key === 'Enter' || e.key === ' ') && e.target === document.activeElement) {
+                    const card = e.target.closest && e.target.closest('[data-manga-key]');
+                    if (card && card === e.target) {
+                        e.preventDefault();
+                        openDetail(state.mangaMap.get(card.getAttribute('data-manga-key')));
+                    }
+                }
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                backToDetail();
+            } else if (e.key === 'ArrowLeft' && state.readerPrev) {
+                openReader(state.readerPrev);
+            } else if (e.key === 'ArrowRight' && state.readerNext) {
+                openReader(state.readerNext);
+            }
+        });
+
+        document.getElementById('readerBack').addEventListener('click', backToDetail);
+        document.getElementById('readerList').addEventListener('click', backToDetail);
+        document.getElementById('reader-pages').addEventListener('click', function (e) {
+            if (e.target.closest('button')) return;
+            toggleReaderUI();
+        });
+        document.getElementById('btn-prev-chap').addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (state.readerPrev) openReader(state.readerPrev);
+        });
+        document.getElementById('btn-next-chap').addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (state.readerNext) openReader(state.readerNext);
+        });
+
+        let progressQueued = false;
+        window.addEventListener('scroll', function () {
+            if (progressQueued) return;
+            progressQueued = true;
+            requestAnimationFrame(function () {
+                progressQueued = false;
+                updateReaderProgress();
+            });
+        }, { passive: true });
+
+        /* =====================================================================
+           INISIALISASI
+        ===================================================================== */
+        setActiveNav('beranda');
+        navigate('beranda');
+    </script>
+</body>
+</html>
